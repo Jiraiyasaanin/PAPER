@@ -1,0 +1,51 @@
+{
+  "case_name": "United States v. Elizabeth A. Holmes, No. 5:18-cr-00258 (N.D. Cal. 2022)",
+  "hypothesis": "Defendant Elizabeth Holmes is guilty of Wire Fraud under 18 U.S.C. § 1343 for knowingly devising a scheme to defraud investors by misrepresenting the operational capabilities of Theranos proprietary blood-testing technology.",
+  "historical_outcome": "GUILTY (Convicted on 4 counts of investor wire fraud by federal jury on Jan 3, 2022; sentenced to 135 months)",
+  "standard_of_proof": "Beyond a reasonable doubt",
+  "verdict_mode": "guilty_not_guilty",
+  "for_evidence": [
+    {
+      "id": "for_wire_fraud_statute",
+      "title": "18 U.S.C. § 1343 - Federal Wire Fraud Statute",
+      "text": "Whoever, having devised or intending to devise any scheme or artifice to defraud, or for obtaining money or property by means of false or fraudulent pretenses, representations, or promises, transmits or causes to be transmitted by means of wire, radio, or television communication in interstate or foreign commerce, any writings, signs, signals, pictures, or sounds for the purpose of executing such scheme or artifice, shall be fined or imprisoned not more than 20 years, or both."
+    },
+    {
+      "id": "for_forged_pfizer_report",
+      "title": "Trial Exhibit TX-2045: Altered Pfizer Validation Report",
+      "text": "A 2014 Theranos internal dossier distributed to potential venture capital investors prominently displayed Pfizer's official corporate logo on the cover page and header, stating that 'Pfizer has comprehensively evaluated and verified Theranos proprietary analyzer technology as accurate and robust.' Pfizer's Global Head of Clinical Diagnostics testified that Pfizer never authorized the use of its logo, never validated the technology, and had explicitly declined to partner with Theranos."
+    },
+    {
+      "id": "for_secret_siemens_machines",
+      "title": "Trial Exhibit TX-5518: Lab Testing Logs & Technician Testimony",
+      "text": "Internal laboratory run logs and testimony from Chief Lab Associate confirmed that the proprietary Theranos 'Edison' analyzers were only capable of processing 12 blood tests out of over 200 advertised tests. To fulfill the remaining test volume, Theranos secretly diluted venous blood samples and ran them on commercially purchased Siemens ADVIA analyzers modified in a locked basement laboratory, while Holmes told investors that all tests ran entirely on Theranos proprietary microfluidic devices."
+    },
+    {
+      "id": "for_investor_wire_receipt",
+      "title": "Trial Exhibit TX-1082: RDV Corporation $100M Wire Confirmation",
+      "text": "Federal Reserve wire transfer confirmation record showing an interstate wire of $100,000,000 from RDV Corporation (the DeVos family investment fund) in Michigan to Theranos's corporate banking account in California on October 31, 2014, transmitted directly in reliance upon investment presentations personally delivered by Elizabeth Holmes."
+    }
+  ],
+  "against_evidence": [
+    {
+      "id": "against_good_faith_defense",
+      "title": "Ninth Circuit Criminal Jury Instruction 3.17: Good Faith Belief",
+      "text": "Good faith is a complete defense to wire fraud. A defendant who acts in good faith lacks the specific intent to defraud. An honest belief in the eventual feasibility, accuracy, or potential of the business and technology negates fraud, even if that belief turns out to be inaccurate, overly optimistic, or mistaken. The burden is on the government to prove fraudulent intent beyond a reasonable doubt."
+    },
+    {
+      "id": "against_scientific_reliance",
+      "title": "Trial Exhibit DX-7201: Internal Medical & Advisory Board Directives",
+      "text": "Theranos established a prominent Scientific Advisory Board and employed licensed medical directors, including Dr. Adam Rosendorff and Dr. J. Craig. Internal emails show Holmes regularly asked medical directors if the laboratory had regulatory CLIA certification and was told the laboratory held active federal certification. Holmes, lacking formal medical degrees, relied upon her technical specialists' assurances that operational modifications complied with industry laboratory standards."
+    },
+    {
+      "id": "against_equity_retention",
+      "title": "Trial Exhibit DX-8140: Securities Ownership & Divestiture Audit",
+      "text": "Securities and Exchange Commission filings and company capitalization tables show that Elizabeth Holmes never sold a single share of her Theranos common equity throughout the company's entire 15-year existence, forfeiting over $4 billion in paper wealth when the company dissolved. The defense argues this proves the absence of a get-rich-quick fraudulent scheme, demonstrating genuine commitment to the company's long-term success."
+    },
+    {
+      "id": "against_trade_puffery",
+      "title": "Corporate Precedent: Forward-Looking Venture Statements (In re Silicon Graphics)",
+      "text": "In high-technology venture financing, broad promotional statements regarding prospective roadmap capabilities, future miniaturization, and competitive disruption represent non-actionable trade puffery and visionary business aspirations rather than existing warranties of current operational performance, especially when delivered to sophisticated accredited venture investors."
+    }
+  ]
+}

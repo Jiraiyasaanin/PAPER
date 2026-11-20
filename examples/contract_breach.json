@@ -1,0 +1,39 @@
+{
+  "hypothesis": "Apex Systems Inc. committed an incurable material breach of Section 8.1 of the Master Software Agreement by failing to deliver Phase II by October 15, 2026.",
+  "standard_of_proof": "Preponderance of the evidence",
+  "verdict_mode": "liable_not_liable",
+  "for_evidence": [
+    {
+      "id": "for_milestone_clause",
+      "title": "Section 3.1: Milestone Delivery Schedule",
+      "text": "Apex Systems shall deliver all finalized, production-ready deliverables for Phase II on or before October 15, 2026. Time is strictly of the essence."
+    },
+    {
+      "id": "for_material_breach_definition",
+      "title": "Section 8.1: Events of Material Default",
+      "text": "Failure to achieve Phase II production readiness by the Milestone Date shall constitute an immediate Material Breach, entitling Client to liquidated damages and contract termination without opportunity to cure."
+    },
+    {
+      "id": "for_delivery_log",
+      "title": "Production Deployment Log #PL-1015",
+      "text": "As of 23:59 UTC on October 15, 2026, the Phase II production repository contained failing test builds with 42 critical blocking defects. No release candidate was signed off or deployed."
+    }
+  ],
+  "against_evidence": [
+    {
+      "id": "against_dependency_clause",
+      "title": "Section 2.4: Client API Provisioning Prerequisite",
+      "text": "Apex's delivery timeline is expressly contingent upon Client providing production API access and staging credentials at least thirty (30) days prior to the Milestone Date. Any Client delay shall automatically extend Apex's delivery deadline day-for-day."
+    },
+    {
+      "id": "against_jira_audit",
+      "title": "Jira Security Ticket #SEC-441",
+      "text": "Client's security team did not provision the production API credentials to Apex until October 2, 2026, creating an undisputed 17-day prerequisite dependency delay caused exclusively by Client."
+    },
+    {
+      "id": "against_force_majeure",
+      "title": "Section 14.1: Cloud Infrastructure Outage",
+      "text": "Neither party shall be liable for delayed performance resulting from global cloud infrastructure downtime exceeding 48 consecutive hours certified by the cloud vendor."
+    }
+  ]
+}

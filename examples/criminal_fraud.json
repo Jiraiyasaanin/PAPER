@@ -1,0 +1,39 @@
+{
+  "hypothesis": "The Defendant (David Vance) is guilty of Criminal Breach of Trust under Section 406 for dishonestly misappropriating client escrow funds into his personal margin trading account.",
+  "standard_of_proof": "Beyond a reasonable doubt",
+  "verdict_mode": "guilty_not_guilty",
+  "for_evidence": [
+    {
+      "id": "for_statute_406",
+      "title": "Section 405/406 - Criminal Breach of Trust",
+      "text": "Whoever, being in any manner entrusted with property, or with any dominion over property, dishonestly misappropriates or converts to his own use that property, commits criminal breach of trust and shall be punished with imprisonment."
+    },
+    {
+      "id": "for_wire_transfer_log",
+      "title": "Audit Exhibit A: Wire Transfer Receipt",
+      "text": "On June 12, 2026, Transaction #WT-99402 transferred $250,000 directly from Escrow Account #8821 (Designated Client Trust) to Vantage Personal Derivatives Brokerage Account #009 registered exclusively in the individual name of David Vance."
+    },
+    {
+      "id": "for_email_admission",
+      "title": "Audit Exhibit B: Internal Communication",
+      "text": "Email from David Vance to operations controller dated June 14: 'I temporarily diverted the $250k from the escrow bucket to cover my personal margin call on index futures. I will wire it back before month-end reconciliation.'"
+    }
+  ],
+  "against_evidence": [
+    {
+      "id": "against_discretionary_clause",
+      "title": "Escrow Agreement Section 4.2: Authorized Short-Term Hedging",
+      "text": "The Escrow Agent is authorized in its sole discretion to place funds in short-term liquid hedging and overnight facilities to preserve capital purchasing power pending final closing."
+    },
+    {
+      "id": "against_power_of_attorney",
+      "title": "Client Discretionary Power of Attorney Form",
+      "text": "The Beneficiary grants the Trustee full authority to execute short-term financial transactions and treasury swaps across omnibus and related custody accounts."
+    },
+    {
+      "id": "against_full_repayment",
+      "title": "Bank Reconciliation Statement: June 25",
+      "text": "On June 25, 2026, David Vance transferred $252,500 ($250,000 principal plus 1% overnight interest) into Escrow Account #8821. The account experienced zero net loss, and all obligations were settled before notice or investigation."
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+import json
+import logging
+from typing import Optional
+from groq import Groq
+from lmad.config import DEFAULT_MODEL, FALLBACK_MODELS, GROQ_API_KEY, VERDICT_MODES
+from lmad.models.schemas import CaseInput, JudgmentOutput, FidelityAssessment
+from lmad.models.prompts import JUDGE_SYSTEM_PROMPT, get_judge_evaluation_prompt
+
+logger = logging.getLogger(__name__)
+
+
+class JudgeAgent:
+    """Judge and Adjudicator agent evaluating the entire debate and returning calibrated probabilities."""
+
+    def __init__(self, model: Optional[str] = None, api_key: Optional[str] = None):
+        self.model = model or DEFAULT_MODEL
+        self.client = Groq(api_key=api_key or GROQ_API_KEY)
+        self.system_prompt = JUDGE_SYSTEM_PROMPT
+
+    def _call_groq_json(self, messages: list) -> dict:
+        candidate_models = [self.model] + [m for m in FALLBACK_MODELS if m != self.model]
+        last_error = None
+
+        for model_name in candidate_models:
+            try:
+                response = self.client.chat.completions.create(
+                    model=model_name,
+                    messages=messages,
+                    response_format={"type": "json_object"},
+                    temperature=0.1,  # Lower temperature for judicial objectivity
+                )
+                content = response.choices[0].message.content
+                return json.loads(content)
+            except Exception as e:
+                logger.warning("Judge call to model '%s' failed: %s. Trying fallback...", model_name, e)
+                last_error = e
+
+        raise RuntimeError(f"All Groq model attempts failed for Judge. Last error: {last_error}")
+
+    def evaluate_debate(self, case_input: CaseInput, full_transcript: str) -> JudgmentOutput:
+        """Evaluate the full debate transcript and output calibrated verdict and probabilities."""
+        verdict_labels = VERDICT_MODES.get(
+            case_input.verdict_mode,
+            VERDICT_MODES["guilty_not_guilty"],
+        )
+        pos_label, neg_label = verdict_labels
+
+        prompt = get_judge_evaluation_prompt(
+            hypothesis=case_input.hypothesis,
+            for_clauses=case_input.for_evidence,
+            against_clauses=case_input.against_evidence,
+            full_transcript=full_transcript,
+            standard_of_proof=case_input.standard_of_proof,
+            verdict_mode=case_input.verdict_mode,
+            positive_label=pos_label,
+            negative_label=neg_label,
+        )
+
+        messages = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": prompt},
+        ]
+
+        raw = self._call_groq_json(messages)
+
+        # Extract and normalize probabilities
+        p_pos = float(raw.get("probability_positive", 0.5))
+        p_neg = float(raw.get("probability_negative", 0.5))
+
+        # Ensure bounds and normalization
+        total_p = p_pos + p_neg
+        if total_p > 0:
+            p_pos = round(p_pos / total_p, 4)
+            p_neg = round(1.0 - p_pos, 4)
+        else:
+            p_pos, p_neg = 0.5, 0.5
+
+        # Extract verdict
+        verdict = raw.get("verdict", pos_label if p_pos >= 0.5 else neg_label)
+
+        # Fidelity
+        fidelity_raw = raw.get("fidelity_assessment", {})
+        fidelity = FidelityAssessment(
+            advocate_fidelity=fidelity_raw.get("advocate_fidelity", "No specific remarks."),
+            defender_fidelity=fidelity_raw.get("defender_fidelity", "No specific remarks."),
+        )
+
+        decisive = raw.get("decisive_clauses", [])
+        reasoning = raw.get("judicial_reasoning", "No detailed opinion provided.")
+
+        return JudgmentOutput(
+            verdict=verdict,
+            verdict_type=case_input.verdict_mode,
+            probability_positive=p_pos,
+            probability_negative=p_neg,
+            fidelity_assessment=fidelity,
+            decisive_clauses=decisive,
+            judicial_reasoning=reasoning,
+        )
