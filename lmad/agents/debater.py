@@ -1,8 +1,10 @@
 import json
 import logging
+import time
+import re
 from typing import List, Optional
 from groq import Groq
-from lmad.config import DEFAULT_MODEL, FALLBACK_MODELS, GROQ_API_KEY
+from lmad.config import DEFAULT_MODEL, GROQ_API_KEY
 from lmad.models.schemas import Clause, StatementOutput, RebuttalOutput
 from lmad.models.prompts import (
     ADVOCATE_SYSTEM_PROMPT,
@@ -33,15 +35,13 @@ class DebaterAgent:
             ADVOCATE_SYSTEM_PROMPT if self.role == "Advocate" else DEFENDER_SYSTEM_PROMPT
         )
 
-    def _call_groq_json(self, messages: list) -> dict:
-        """Call Groq API with JSON mode and automatic model fallback on error."""
-        candidate_models = [self.model] + [m for m in FALLBACK_MODELS if m != self.model]
+    def _call_groq_json(self, messages: list, max_retries: int = 8) -> dict:
+        """Call Groq API with JSON mode and auto-pause retry on rate limits (strictly adhering to assigned model)."""
         last_error = None
-
-        for model_name in candidate_models:
+        for attempt in range(1, max_retries + 1):
             try:
                 response = self.client.chat.completions.create(
-                    model=model_name,
+                    model=self.model,
                     messages=messages,
                     response_format={"type": "json_object"},
                     temperature=0.3,
@@ -49,10 +49,24 @@ class DebaterAgent:
                 content = response.choices[0].message.content
                 return json.loads(content)
             except Exception as e:
-                logger.warning("Call to model '%s' failed: %s. Trying next candidate...", model_name, e)
+                err_msg = str(e)
                 last_error = e
+                # Check for Groq rate limit (429 / TPM / RPM)
+                if "429" in err_msg or "rate_limit" in err_msg.lower():
+                    match = re.search(r"try again in ([0-9.]+)s", err_msg)
+                    wait_time = float(match.group(1)) + 2.0 if match else 25.0
+                    print(f"\n[Groq Rate Limit] Attempt {attempt}/{max_retries} for {self.role}: Rate limit reached. Pausing {wait_time:.1f}s before retrying on {self.model}...")
+                    time.sleep(wait_time)
+                elif attempt < max_retries and any(code in err_msg for code in ["500", "502", "503", "504", "timeout"]):
+                    print(f"\n[Groq Server Error] Attempt {attempt}/{max_retries} for {self.role}: {e}. Pausing 5s before retrying...")
+                    time.sleep(5)
+                else:
+                    logger.error("Call to model '%s' failed for %s: %s", self.model, self.role, e)
+                    if attempt == max_retries:
+                        raise RuntimeError(f"Groq API call failed for {self.role} on model '{self.model}' after {max_retries} attempts: {last_error}")
+                    time.sleep(5)
 
-        raise RuntimeError(f"All Groq model attempts failed for {self.role}. Last error: {last_error}")
+        raise RuntimeError(f"All attempts failed for {self.role} on model '{self.model}'. Last error: {last_error}")
 
     def generate_statement(
         self,

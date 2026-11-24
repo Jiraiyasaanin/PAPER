@@ -1,8 +1,10 @@
 import json
 import logging
+import time
+import re
 from typing import Optional
 from groq import Groq
-from lmad.config import DEFAULT_MODEL, FALLBACK_MODELS, GROQ_API_KEY, VERDICT_MODES
+from lmad.config import DEFAULT_MODEL, GROQ_API_KEY, VERDICT_MODES
 from lmad.models.schemas import CaseInput, JudgmentOutput, FidelityAssessment
 from lmad.models.prompts import JUDGE_SYSTEM_PROMPT, get_judge_evaluation_prompt
 
@@ -17,14 +19,13 @@ class JudgeAgent:
         self.client = Groq(api_key=api_key or GROQ_API_KEY)
         self.system_prompt = JUDGE_SYSTEM_PROMPT
 
-    def _call_groq_json(self, messages: list) -> dict:
-        candidate_models = [self.model] + [m for m in FALLBACK_MODELS if m != self.model]
+    def _call_groq_json(self, messages: list, max_retries: int = 8) -> dict:
+        """Call Groq API with JSON mode and auto-pause retry on rate limits (strictly adhering to assigned model)."""
         last_error = None
-
-        for model_name in candidate_models:
+        for attempt in range(1, max_retries + 1):
             try:
                 response = self.client.chat.completions.create(
-                    model=model_name,
+                    model=self.model,
                     messages=messages,
                     response_format={"type": "json_object"},
                     temperature=0.1,  # Lower temperature for judicial objectivity
@@ -32,10 +33,24 @@ class JudgeAgent:
                 content = response.choices[0].message.content
                 return json.loads(content)
             except Exception as e:
-                logger.warning("Judge call to model '%s' failed: %s. Trying fallback...", model_name, e)
+                err_msg = str(e)
                 last_error = e
+                # Check for Groq rate limit (429 / TPM / RPM)
+                if "429" in err_msg or "rate_limit" in err_msg.lower():
+                    match = re.search(r"try again in ([0-9.]+)s", err_msg)
+                    wait_time = float(match.group(1)) + 2.0 if match else 25.0
+                    print(f"\n[Groq Rate Limit] Judge attempt {attempt}/{max_retries}: Rate limit reached. Pausing {wait_time:.1f}s before retrying on {self.model}...")
+                    time.sleep(wait_time)
+                elif attempt < max_retries and any(code in err_msg for code in ["500", "502", "503", "504", "timeout"]):
+                    print(f"\n[Groq Server Error] Judge attempt {attempt}/{max_retries}: {e}. Pausing 5s before retrying...")
+                    time.sleep(5)
+                else:
+                    logger.error("Judge call to model '%s' failed: %s", self.model, e)
+                    if attempt == max_retries:
+                        raise RuntimeError(f"Judge Groq API call failed on model '{self.model}' after {max_retries} attempts: {last_error}")
+                    time.sleep(5)
 
-        raise RuntimeError(f"All Groq model attempts failed for Judge. Last error: {last_error}")
+        raise RuntimeError(f"All Judge attempts failed on model '{self.model}'. Last error: {last_error}")
 
     def evaluate_debate(self, case_input: CaseInput, full_transcript: str) -> JudgmentOutput:
         """Evaluate the full debate transcript and output calibrated verdict and probabilities."""
